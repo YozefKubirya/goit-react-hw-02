@@ -1,34 +1,54 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
+import { useState ,useEffect} from 'react'
 import './App.css'
-
+import Options from './components/Options/Options'
+import Feedback from './components/Feedback/Feedback'
+import Notification from './components/Notification'
 function App() {
-  const [count, setCount] = useState(0)
+const [values,setValues]=useState(()=>{
+  const savedValue=window.localStorage.getItem('saved-values');
+  if (savedValue !== null) {
+    return JSON.parse(savedValue);
+  }
+  return {
+    good: 0,
+    neutral: 0,
+    bad: 0,
+    
+  }
+})
+useEffect(()=>{
+window.localStorage.setItem('saved-values',JSON.stringify(values))
+},[values])
+
+const updateFeedback = feedbackType => {
+  setValues(
+(prevValues)=>({
+  ...prevValues,
+  [feedbackType]:prevValues[feedbackType]+1,
+
+})
+  )
+  };
+  
+const resetUpdates=()=>{
+  setValues({
+    good: 0,
+    neutral: 0,
+    bad: 0,})
+} 
+const totalFeddback=values.good+values.neutral+values.bad;
+const positiveFeedback=Math.round((values.good / totalFeddback) * 100)
 
   return (
     <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
+    <h1>Sip Happens Café
+    </h1>
+    <p>Please leave your feedback about our service by selecting one of the options below.
+    </p>
+<Options onUpdate={updateFeedback} onReset={resetUpdates} total={totalFeddback}/>
+{totalFeddback===0?(<Notification/>):(<Feedback values={values} total={totalFeddback} positiveFeedback={positiveFeedback}/>)}
     </>
+     
   )
 }
 
